@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="casinoincome" name="Casino Income Generator" version="1.0" author="darthdata" description="Adds periodic casino revenue for stations with gambling dens or casinos." save="true" sync="true">
+    <textresource page="100001" id="casinoincome.log"/>
+</content>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="CasinoIncome">
+
+    <cues>
+
+        <cue name="CasinoIncome.Root" version="1">
+            <conditions>
+                <check_playership />
+            </conditions>
+            <actions>
+                <start_cue cue="CasinoIncome.Loop" />
+            </actions>
+        </cue>
+
+
+        <cue name="CasinoIncome.Loop" version="1" interval="1200" repeat="true">
+
+            <actions>
+
+                <!-- Loop all player-owned stations -->
+                <do_all exact="station" counter="$station" where="owner.player">
+
+                    <!-- Reset counters -->
+                    <set_value name="$gamblingdens" exact="0" />
+                    <set_value name="$casinos" exact="0" />
+
+                    <!-- Count Gambling Dens / Casinos -->
+                    <do_all exact="module" counter="$m" in="$station.modules">
+                        <do_if value="($m.macro == 'module_station_gamblingden_01')">
+                            <inc_value name="$gamblingdens" />
+                        </do_if>
+                        <do_if value="($m.macro == 'module_station_casino_01')">
+                            <inc_value name="$casinos" />
+                        </do_if>
+                    </do_all>
+
+                    <!-- Skip if none -->
+                    <do_if value="($gamblingdens + $casinos) == 0">
+                        <continue />
+                    </do_if>
+
+                    <!-- Workforce total -->
+                    <set_value name="$workers" exact="{$station.workers.total}" />
+
+                    <!-- Visitor roll: 20–60% -->
+                    <set_value name="$percent" exact="randomvalue 20 60" />
+                    <set_value name="$visitors" exact="($workers * $percent) / 100" />
+
+                    <!-- Avg spend: 1000–25000 -->
+                    <set_value name="$avgspend" exact="randomvalue 1000 25000" />
+
+                    <!-- Gross total -->
+                    <set_value name="$gross" exact="$visitors * $avgspend" />
+
+                    <!-- Overhead: 3% -->
+                    <set_value name="$overhead" exact="($gross * 3) / 100" />
+                    <set_value name="$net" exact="$gross - $overhead" />
+
+                    <!-- Add money to station -->
+                    <add_money object="$station" exact="$net" />
+
+                    <!-- Log to Upkeep -->
+                    <logbook message="casinoincome.log"
+                        param1="{$station.name}"
+                        param2="$workers"
+                        param3="$visitors"
+                        param4="$percent"
+                        param5="$avgspend"
+                        param6="$gross"
+                        param7="$overhead"
+                        param8="$net" />
+
+                </do_all>
+
+            </actions>
+
+        </cue>
+
+    </cues>
+
+</mdscript>
