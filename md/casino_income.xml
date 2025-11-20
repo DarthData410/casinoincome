@@ -1,81 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mdscript name="CasinoIncome">
 
-    <cues>
+  <cues>
 
-        <cue name="CasinoIncome.Root" version="1">
-            <conditions>
-                <check_playership />
-            </conditions>
-            <actions>
-                <start_cue cue="CasinoIncome.Loop" />
-            </actions>
-        </cue>
+    <!-- Run when player exists -->
+    <cue name="CasinoIncome.Start" version="1">
+      <conditions>
+        <check_playership />
+      </conditions>
+      <actions>
+        <start_cue cue="CasinoIncome.Run" />
+      </actions>
+    </cue>
 
 
-        <cue name="CasinoIncome.Loop" version="1" interval="1200" repeat="true">
+    <!-- MAIN LOOP (5 minutes = 300 sec) -->
+    <cue name="CasinoIncome.Run" version="1" interval="300" repeat="true">
 
-            <actions>
+      <actions>
 
-                <!-- Loop all player-owned stations -->
-                <do_all exact="station" counter="$station" where="owner.player">
+        <!-- Loop all player stations -->
+        <do_all exact="station" counter="$station" where="owner.player">
 
-                    <!-- Reset counters -->
-                    <set_value name="$gamblingdens" exact="0" />
-                    <set_value name="$casinos" exact="0" />
+          <!-- Reset counters -->
+          <set_value name="$gamblingdens" exact="0" />
+          <set_value name="$casinos" exact="0" />
 
-                    <!-- Count Gambling Dens / Casinos -->
-                    <do_all exact="module" counter="$m" in="$station.modules">
-                        <do_if value="($m.macro == 'module_station_gamblingden_01')">
-                            <inc_value name="$gamblingdens" />
-                        </do_if>
-                        <do_if value="($m.macro == 'module_station_casino_01')">
-                            <inc_value name="$casinos" />
-                        </do_if>
-                    </do_all>
+          <!-- Count modules EXACTLY by base-game macro name -->
+          <do_all exact="module" counter="$m" in="$station.modules">
 
-                    <!-- Skip if none -->
-                    <do_if value="($gamblingdens + $casinos) == 0">
-                        <continue />
-                    </do_if>
+            <do_if value="$m.macro == 'module_station_gamblingden_01'">
+              <inc_value name="$gamblingdens" />
+            </do_if>
 
-                    <!-- Workforce total -->
-                    <set_value name="$workers" exact="{$station.workers.total}" />
+            <do_if value="$m.macro == 'module_station_casino_01'">
+              <inc_value name="$casinos" />
+            </do_if>
 
-                    <!-- Visitor roll: 20–60% -->
-                    <set_value name="$percent" exact="randomvalue 20 60" />
-                    <set_value name="$visitors" exact="($workers * $percent) / 100" />
+          </do_all>
 
-                    <!-- Avg spend: 1000–25000 -->
-                    <set_value name="$avgspend" exact="randomvalue 1000 25000" />
+          <!-- Skip if none -->
+          <do_if value="($gamblingdens + $casinos) == 0">
+            <continue />
+          </do_if>
 
-                    <!-- Gross total -->
-                    <set_value name="$gross" exact="$visitors * $avgspend" />
+          <!-- Safe workforce -->
+          <set_value name="$workers" exact="{$station.workers.total}" />
+          <do_if value="not $workers">
+            <set_value name="$workers" exact="0" />
+          </do_if>
 
-                    <!-- Overhead: 3% -->
-                    <set_value name="$overhead" exact="($gross * 3) / 100" />
-                    <set_value name="$net" exact="$gross - $overhead" />
+          <!-- No workers? Skip -->
+          <do_if value="$workers == 0">
+            <continue />
+          </do_if>
 
-                    <!-- Add money to station -->
-                    <add_money object="$station" exact="$net" />
+          <!-- Visitors 20–60% -->
+          <set_value name="$percent" exact="randomvalue 20 60" />
+          <set_value name="$visitors" exact="($workers * $percent) / 100" />
 
-                    <!-- Log to Upkeep -->
-                    <logbook message="casinoincome.log"
-                        param1="{$station.name}"
-                        param2="$workers"
-                        param3="$visitors"
-                        param4="$percent"
-                        param5="$avgspend"
-                        param6="$gross"
-                        param7="$overhead"
-                        param8="$net" />
+          <!-- Avg spending -->
+          <set_value name="$avg" exact="randomvalue 1000 25000" />
 
-                </do_all>
+          <!-- Gross -->
+          <set_value name="$gross" exact="($visitors * $avg)" />
 
-            </actions>
+          <!-- Overhead (3%) -->
+          <set_value name="$overhead" exact="($gross * 3) / 100" />
 
-        </cue>
+          <!-- Net -->
+          <set_value name="$net" exact="$gross - $overhead" />
 
-    </cues>
+          <!-- Apply money -->
+          <add_money object="$station" exact="$net" />
+
+          <!-- Log it -->
+          <logbook message="casinoincome.log"
+                   param1="{$station.name}"
+                   param2="$workers"
+                   param3="$visitors"
+                   param4="$percent"
+                   param5="$avg"
+                   param6="$gross"
+                   param7="$overhead"
+                   param8="$net" />
+
+        </do_all>
+
+      </actions>
+
+    </cue>
+
+  </cues>
 
 </mdscript>

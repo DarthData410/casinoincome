@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="CasinoIncome.Scanner">
+
+  <cues>
+
+    <cue name="Scanner.Start" version="1">
+      <conditions>
+        <check_playership />
+      </conditions>
+      <actions>
+        <start_cue cue="Scanner.Run" />
+      </actions>
+    </cue>
+
+    <!-- Run once -->
+    <cue name="Scanner.Run" version="1" repeat="false">
+
+      <actions>
+
+        <!-- Loop all player-owned stations -->
+        <do_all exact="station" counter="$station" where="owner.player">
+
+          <!-- safe values -->
+          <set_value name="$sname" exact="{$station.name}" />
+          <set_value name="$sowner" exact="{$station.owner.name}" />
+          <set_value name="$workers" exact="{$station.workers.total}" />
+          <do_if value="not $workers">
+            <set_value name="$workers" exact="0"/>
+          </do_if>
+
+          <set_value name="$modulecount" exact="{$station.modules.count}" />
+
+          <!-- Log station summary -->
+          <logbook message="casinoincome.scan"
+                   param1="$sname"
+                   param2="$sowner"
+                   param3="$workers"
+                   param4="$modulecount" />
+
+          <!-- Log each module macro for this station -->
+          <do_all exact="module" counter="$m" in="$station.modules">
+            <set_value name="$mi" exact="{$m.index}" />
+            <set_value name="$mm" exact="{$m.macro}" />
+            <logbook message="casinoincome.scan"
+                     param1="$sname"
+                     param2="$mi"
+                     param3="$mm" />
+          </do_all>
+
+        </do_all>
+
+      </actions>
+
+    </cue>
+
+  </cues>
+
+</mdscript>

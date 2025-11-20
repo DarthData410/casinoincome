@@ -3,4 +3,8 @@
   <page id="100001">
     <t id="1">Casino Income: {1} — Workers: {2}, Visitors: {3} ({4}%), Avg Spend: {5} cr, Gross: {6} cr, Overhead: {7} cr, Net Added: {8} cr.</t>
   </page>
+  <page id="100002">
+    <t id="1">[SCAN] Station: {1} | Owner: {2} | Workers: {3} | ModuleCount: {4}</t>
+    <t id="2">[SCAN-MODULE] Station: {1} | ModuleIndex: {2} | Macro: {3}</t>
+  </page>
 </language>
